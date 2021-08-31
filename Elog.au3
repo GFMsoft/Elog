@@ -1,18 +1,18 @@
-; 01.07.2021 - Copyright © by Ferdinand Marx - www.GFMsoft.de / www.13OT4288.com - marx@gfmsoft.de
-
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Version=Beta
 #AutoIt3Wrapper_Icon=radio.ico
-#AutoIt3Wrapper_Outfile=Elog.exe
+#AutoIt3Wrapper_Outfile=..\..\elog.Exe
 #AutoIt3Wrapper_Res_Comment=Alpha
 #AutoIt3Wrapper_Res_Description=Software for HAM Radio Users
-#AutoIt3Wrapper_Res_Fileversion=1.5.1.1
+#AutoIt3Wrapper_Res_Fileversion=1.5.4.1
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_ProductName=Elog
+#AutoIt3Wrapper_Res_ProductVersion=1.5.4.1
 #AutoIt3Wrapper_Res_CompanyName=GFMsoft
 #AutoIt3Wrapper_Res_LegalCopyright=Ferdinand Marx - www.GFMSOFT.de
 #AutoIt3Wrapper_Res_LegalTradeMarks=Ferdinand Marx - www.GFMSOFT.de
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+; 01.07.2021 - Copyright © by Ferdinand Marx - www.GFMsoft.de / www.13OT4288.com - marx@gfmsoft.de
 
 
 

@@ -114,7 +114,7 @@ Global $Datum, $Zeit, $Rufzeichen, $skip, $RX, $TX, $FREQ, $mode, $Name, $locato
 Global $label7, $label8, $label9, $label10, $label11, $label12, $label13, $label14, $label3, $label4, $label5, $label6
 Global $searchform, $searchform_Label1, $searchform_Button1, $searchform_Button2, $searchform_Input1, $latitude, $longtitude
 Global $settingsform, $settingsform_Input1, $settingsform_Label1, $settingsform_Button1, $settingsform_Button2
-Global $r, $settingsform_combo1, $settingsform_Label2, $global_language
+Global $r, $settingsform_combo1, $settingsform_Label2, $global_language, $mathpi
 #EndRegion ;Main declare of vars
 
 
@@ -126,10 +126,11 @@ $lastid = 0
 $Index_listload = 0
 $maincounter = 0
 $sql_status = 0
-$version = "1.5.4.1"
+$version = "1.5.5.1"
 $dbsearchterm = ""
 $searchtermfunc = ""
 $global_language=""
+$mathpi = 3.14159
 
 ;~ Program init and register WM_Notify event
 init()
@@ -1731,10 +1732,6 @@ EndFunc   ;==>search
 ;This function converts Maidenheadlocator to LAT LON
 Func convertlocator($locator)
 
-
-	;DEBUG
-;~ 	MsgBox(0,"Convert locator","Converting: "&$locator)
-
 	;This function is written by Ferdinand Marx - www.GFMsoft.de
 	;Guided by the following tutorial
 	;http://www.m0nwk.co.uk/how-to-convert-maidenhead-locator-to-latitude-and-longitude/
@@ -1742,9 +1739,6 @@ Func convertlocator($locator)
 	Local $latitude, $longtitude, $array, $workarray, $asciiarray, $worklocator
 	Local $lat_step1, $lat_step2, $lat_step3
 	Local $lon_step1, $lon_step2, $lon_step3, $lon_step4
-
-
-;~ 	$locator="FP64CI"
 
 	If StringLen($locator) <> 6 Then
 		ConsoleWrite("Targetlocator corrupt - cant calculate!"&@CRLF)
@@ -1755,18 +1749,15 @@ Func convertlocator($locator)
 	$worklocator = StringLower($worklocator)
 	$locator = StringTrimRight($locator, 2)
 	$locator = $locator & $worklocator
-
-;~ 	ConsoleWrite("Locator: "&$locator&@CRLF)
-
 	$asciiarray = StringToASCIIArray($locator)
 	$workarray = StringSplit($locator, "")
 
 
 	If IsArray($workarray) = False Then
-		;FEHLERmeldung
+		return 0
 	EndIf
 	If $workarray[0] <> 6 Then
-		;Fehlermeldung
+		return 0
 	EndIf
 
 
@@ -1775,69 +1766,54 @@ Func convertlocator($locator)
 
 	$lat_step1 = $lat_step1 - 65
 	$lat_step1 = $lat_step1 * 10
-;~ ConsoleWrite("lat step1: "&$lat_step1&@CRLF)
 
 	;step2 - get number of position 4
 	$lat_step2 = $workarray[4]
-;~ ConsoleWrite("lat step2: "&$lat_step2 &@CRLF)
 
 	;step 3 - find ascii char for 6th char of locator
 	$lat_step3 = $asciiarray[5]
-
-
 	$lat_step3 = $lat_step3 - 97
 	$lat_step3 = $lat_step3 / 24
 	$lat_step3 = $lat_step3 + (1 / 48)
 	$lat_step3 = $lat_step3 - 90
-;~ ConsoleWrite("lat step3: "&$lat_step3 &@CRLF)
 
 	;step 4 - all together STEP1 + STEP2 + STEP3
 	$latitude = $lat_step1 + $lat_step2 + $lat_step3
-;~ ConsoleWrite("Latitude: "& $latitude &@CRLF)
-;~ ConsoleWrite("Latitude (round): "& round($latitude,3) &@CRLF)
-;~ ConsoleWrite("----------"&@CRLF)
 
-;~ ___________
-;~ LONGTITUDE
+	;~ ___________
+	;~ LONGTITUDE
 
 	;step1 - Find the ASCII charachter code for the 1st character of the locator code
 	$lon_step1 = $asciiarray[0]
 
-
 	$lon_step1 = $lon_step1 - 65
 	$lon_step1 = $lon_step1 * 20
-;~ ConsoleWrite("lon step1: "&$lon_step1&@CRLF)
 
 	;step2 - Get number from position 3
 	$lon_step2 = $workarray[3]
 	$lon_step2 = $lon_step2 * 2
-;~ ConsoleWrite("lon step2: "&$lon_step2&@CRLF)
 
 	;step3 - Find the ASCII charachter code for the 5th character of the locator code
 	$lon_step3 = $asciiarray[4]
-
-
 	$lon_step3 = $lon_step3 - 97
 	$lon_step3 = $lon_step3 / 12
 	$lon_step3 = $lon_step3 + (1 / 24)
-;~ ConsoleWrite("lon step3: "&$lon_step3&@CRLF)
-
 
 	;step4 - Add results A, B and C then deduct 180
 	$longtitude = ($lon_step1 + $lon_step2 + $lon_step3) - 180
-;~ ConsoleWrite("Longtitude: "&$longtitude&@CRLF)
-;~ 	ConsoleWrite(@CRLF)
-;~ 	ConsoleWrite(round($latitude,3)&" / "&round($longtitude,3)&@CRLF)
-;~ 	ConsoleWrite(@CRLF)
 	Return Round($latitude, 3) & "," & Round($longtitude, 3)
-
-
-
 
 EndFunc   ;==>convertlocator
 
 ;This function calculates the distance of two qth's
 Func calcdistance($qthdistance)
+
+	;This Function is written by Ferdinand Marx - www.GFMSOFT.de
+	;Calculate distance with Latitude/Longitude points
+	;This script calculates the distance between to locations on planet earth given in LAT LON
+	;Result is Rounded
+	;It uses the haversine formula. - https://en.wikipedia.org/wiki/Haversine_formula
+
 
 	;checking for inputerrors
 	if StringLen($qthdistance) <> 6 or $qthdistance = "" Then
@@ -1849,18 +1825,9 @@ Func calcdistance($qthdistance)
 		return 0
 	EndIf
 
-	;Calculate distance with Latitude/Longitude points
-	;This script calculates the distance between to locations on planet earth given in LAT LON
-	;Result is Rounded
-	;This script is a convert from https://www.movable-type.co.uk/scripts/latlong.html
-	;It uses the haversine formula.
-	;~ https://www.nhc.noaa.gov/gccalc.shtml
-
 	;Define local vars
 	Local $lat1, $lat2, $lon1, $lon2, $point1, $point2
-	Local $phi1, $phi2, $mathpi, $a, $c, $d
-
-
+	Local $phi1, $phi2, $a, $c, $d
 
 	; delta = Δφ
 	Local $delta
@@ -1892,9 +1859,6 @@ Func calcdistance($qthdistance)
 
 	$lat2 = $point2[1]
 	$lon2 = $point2[2]
-
-	;3.141592653589793
-	$mathpi = 3.14159
 
 	$phi1 = $lat1 * $mathpi / 180
 	$phi2 = $lat2 * $mathpi / 180
